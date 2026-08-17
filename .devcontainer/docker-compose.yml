@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lt_be_test_app
+    volumes:
+      - ../..:/workspaces:cached
+
+    # Overrides default command so things don't shut down after the process ends.
+    command: sleep infinity
+
+    # Runs app on the same network as the database container, allows "forwardPorts" in devcontainer.json function.
+    # network_mode: service:db
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+    networks:
+      - app-network
+    # Use "forwardPorts" in **devcontainer.json** to forward an app port locally.
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+
+  mongo_db:
+    image: mongo:8.3.7-noble
+    container_name: lt_be_test_mongo_db
+    restart: unless-stopped
+    networks:
+      - app-network
+    volumes:
+      - mongodb-data:/data/db
+    # Uncomment to change startup options
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_DATABASE: seetickets
+    # Add "forwardPorts": ["27017"] to **devcontainer.json** to forward MongoDB locally.
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+
+  postgres_db:
+    image: postgres:18.4
+    container_name: lt_be_test_postgres_db
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: example
+      POSTGRES_DB: seetickets
+
+    # Add "forwardPorts": ["5432"] to **devcontainer.json** to forward PostgreSQL locally.
+    # (Adding the "ports" property to this file will not forward from a Codespace.)
+
+volumes:
+  mongodb-data:
+  postgres-data:
+
+networks:
+  app-network:
+    driver: bridge
