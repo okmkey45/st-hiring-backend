@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 
 export const mockRequest = (overrides?: Partial<Request>): Request => {
   return {
@@ -16,4 +16,8 @@ export const mockResponse = (): Response => {
   res.json = jest.fn().mockReturnValue(res);
   res.send = jest.fn().mockReturnValue(res);
   return res as Response;
+};
+
+export const mockNext = (): NextFunction => {
+  return jest.fn() as unknown as NextFunction;
 };

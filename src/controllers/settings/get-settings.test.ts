@@ -1,6 +1,6 @@
 import { createGetSettingsController } from './get-settings';
-import { SettingsDAL } from '../dal/settings.dal';
-import { mockRequest, mockResponse } from '../test-utils/express.mock';
+import { SettingsDAL } from '../../dal/settings.dal';
+import { mockRequest, mockResponse } from '../../test-utils/express.mock';
 
 describe('createGetSettingsController', () => {
   let mockSettingsDAL: jest.Mocked<SettingsDAL>;

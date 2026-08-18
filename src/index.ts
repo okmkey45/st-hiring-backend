@@ -1,16 +1,22 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+
 import { createEventDAL } from './dal/events.dal';
 import { createTicketDAL } from './dal/tickets.dal';
 import { createSettingsDAL } from './dal/settings.dal';
+
 import { createGetEventsController } from './controllers/get-events';
-import { createGetSettingsController } from './controllers/get-settings';
-import { createPostSettingsController } from './controllers/post-settings';
+import { createGetSettingsController } from './controllers/settings/get-settings';
+import { createPostSettingsController } from './controllers/settings/post-settings';
+
 import { connectMongo, disconnectMongo } from './database/mongo';
 import { connectPostgres, disconnectPostgres } from './database/postgres';
 import postgresConfig from './knexfile';
 import mongoConfig from './mongoConfig';
+
+import { validate } from './middleware/validate';
+import { settingsSchema } from './controllers/settings/post-settings.schema';
 
 const startServer = async () => {
   const Knex = await connectPostgres(postgresConfig.development);
@@ -31,7 +37,11 @@ const startServer = async () => {
 
   app.use('/events', createGetEventsController({ eventsDAL: eventDAL, ticketsDAL: TicketDAL }));
   app.get('/settings', createGetSettingsController({ settingsDAL }));
-  app.post('/settings', createPostSettingsController({ settingsDAL }));
+  app.post(
+    '/settings',
+    validate(settingsSchema),
+    createPostSettingsController({ settingsDAL })
+  );
 
   app.use('/', (_req, res) => {
     res.json({ message: 'Hello API' });
