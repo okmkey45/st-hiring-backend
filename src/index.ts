@@ -2,11 +2,11 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 
-import { createEventDAL } from './dal/events.dal';
+import { ALLOWED_EVENT_FIELDS, createEventDAL } from './dal/events.dal';
 import { createTicketDAL } from './dal/tickets.dal';
 import { createSettingsDAL } from './dal/settings.dal';
 
-import { createGetEventsController } from './controllers/get-events';
+import { createGetEventsController } from './controllers/events/get-events';
 import { createGetSettingsController } from './controllers/settings/get-settings';
 import { createPostSettingsController } from './controllers/settings/post-settings';
 
@@ -16,6 +16,7 @@ import postgresConfig from './knexfile';
 import mongoConfig from './mongoConfig';
 
 import { validate } from './middleware/validate';
+import { paginationMiddleware } from './middleware/pagination';
 import { settingsSchema } from './controllers/settings/post-settings.schema';
 
 const startServer = async () => {
@@ -24,6 +25,7 @@ const startServer = async () => {
 
   const eventDAL = createEventDAL(Knex);
   const TicketDAL = createTicketDAL(Knex);
+  console.log(TicketDAL);
   const settingsDAL = createSettingsDAL(mongoDb);
 
   const app = express();
@@ -35,7 +37,12 @@ const startServer = async () => {
     res.json({ status: 'ok' });
   });
 
-  app.use('/events', createGetEventsController({ eventsDAL: eventDAL, ticketsDAL: TicketDAL }));
+  app.get(
+    '/events',
+    paginationMiddleware({ allowedFields: ALLOWED_EVENT_FIELDS }),
+    createGetEventsController({ eventsDAL: eventDAL }),
+  );
+
   app.get('/settings', createGetSettingsController({ settingsDAL }));
   app.post(
     '/settings',
