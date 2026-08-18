@@ -5,7 +5,7 @@ import path from 'path';
 // Load the .env file from the root directory
 config({ path: path.resolve(__dirname, '../.env') });
 
-const dbConfig: { [key: string]: Knex.Config } = {
+const postgresConfig: { [key: string]: Knex.Config } = {
   development: {
     client: "postgresql",
     connection: {
@@ -30,6 +30,6 @@ const dbConfig: { [key: string]: Knex.Config } = {
   },
 };
 
-module.exports = dbConfig;
+module.exports = postgresConfig;
 
-export default dbConfig;
+export default postgresConfig;
