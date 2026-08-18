@@ -100,3 +100,35 @@ export const paginationMiddleware = (options?: PaginationOptions) =>
       return next(error);
     }
   };
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: {
+    totalItems: number;
+    totalPages: number;
+    currentPage: number;
+    nextPage: number | null;
+    prevPage: number | null;
+  };
+}
+
+export function buildPaginatedResponse<T>(
+  data: T[],
+  totalItems: number,
+  limit: number,
+  skip: number
+): PaginatedResponse<T> {
+  const currentPage = Math.floor(skip / limit) + 1;
+  const totalPages = Math.ceil(totalItems / limit);
+
+  return {
+    data,
+    meta: {
+      totalItems,
+      totalPages,
+      currentPage,
+      nextPage: currentPage < totalPages ? currentPage + 1 : null,
+      prevPage: currentPage > 1 ? currentPage - 1 : null,
+    },
+  };
+}

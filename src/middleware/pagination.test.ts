@@ -1,4 +1,4 @@
-import { paginationMiddleware } from './pagination';
+import { paginationMiddleware, buildPaginatedResponse } from './pagination';
 import { mockRequest, mockResponse, mockNext } from '../test-utils/express.mock';
 
 describe('paginationMiddleware', () => {
@@ -118,5 +118,71 @@ describe('paginationMiddleware', () => {
 
     expect(res.locals.pagination?.fields).toEqual([]);
     expect(next).toHaveBeenCalled();
+  });
+});
+
+describe('buildPaginatedResponse', () => {
+  it('should return correct metadata for the first page', () => {
+    const data = [1, 2, 3];
+    const response = buildPaginatedResponse(data, 10, 3, 0);
+
+    expect(response).toEqual({
+      data,
+      meta: {
+        totalItems: 10,
+        totalPages: 4,
+        currentPage: 1,
+        nextPage: 2,
+        prevPage: null,
+      },
+    });
+  });
+
+  it('should return correct metadata for a middle page', () => {
+    const data = [4, 5, 6];
+    const response = buildPaginatedResponse(data, 10, 3, 3);
+
+    expect(response).toEqual({
+      data,
+      meta: {
+        totalItems: 10,
+        totalPages: 4,
+        currentPage: 2,
+        nextPage: 3,
+        prevPage: 1,
+      },
+    });
+  });
+
+  it('should return correct metadata for the last page', () => {
+    const data = [10];
+    const response = buildPaginatedResponse(data, 10, 3, 9);
+
+    expect(response).toEqual({
+      data,
+      meta: {
+        totalItems: 10,
+        totalPages: 4,
+        currentPage: 4,
+        nextPage: null,
+        prevPage: 3,
+      },
+    });
+  });
+
+  it('should return correct metadata for an empty dataset', () => {
+    const data: number[] = [];
+    const response = buildPaginatedResponse(data, 0, 10, 0);
+
+    expect(response).toEqual({
+      data,
+      meta: {
+        totalItems: 0,
+        totalPages: 0,
+        currentPage: 1,
+        nextPage: null,
+        prevPage: null,
+      },
+    });
   });
 });

@@ -8,6 +8,7 @@ describe('createGetEventsController', () => {
   beforeEach(() => {
     mockEventsDAL = {
       getEvents: jest.fn().mockResolvedValue([{ id: 1, name: 'Event 1' }]),
+      countEvents: jest.fn().mockResolvedValue(100),
     };
   });
 
@@ -30,6 +31,15 @@ describe('createGetEventsController', () => {
       skip: 20,
       fields: ['id', 'name'],
     });
-    expect(res.json).toHaveBeenCalledWith([{ id: 1, name: 'Event 1' }]);
+    expect(res.json).toHaveBeenCalledWith({
+      data: [{ id: 1, name: 'Event 1' }],
+      meta: {
+        totalItems: 100,
+        totalPages: 10,
+        currentPage: 3,
+        nextPage: 4,
+        prevPage: 2,
+      },
+    });
   });
 });

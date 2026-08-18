@@ -7,7 +7,7 @@ const DEFAULT_FIELDS: (keyof Event)[] = ['id', 'name'];
 // but leaving some space for future growth and other implementations
 // these values are not final and can be changed
 export const MAX_EVENTS_LIMIT = 1000;
-export const MAX_EVENTS_SKIP = 100;
+export const MAX_EVENTS_SKIP = 10000;
 
 export const ALLOWED_EVENT_FIELDS = ['id', 'name', 'date', 'location', 'description'] as (keyof Event)[];
 
@@ -19,6 +19,7 @@ export interface GetEventsParams {
 
 export interface EventDAL {
   getEvents(params: GetEventsParams): Promise<Partial<Event>[]>;
+  countEvents(): Promise<number>;
 }
 
 export const createEventDAL = (knex: Knex): EventDAL => {
@@ -36,6 +37,10 @@ export const createEventDAL = (knex: Knex): EventDAL => {
   };
 
   return {
+    async countEvents(): Promise<number> {
+      const result = await knex('events').count<{ count: string | number }>('* as count').first();
+      return Number(result?.count || 0);
+    },
     async getEvents({ limit, skip, fields = [] }): Promise<Partial<Event>[]> {
       assertPaginationParams(limit, skip);
 
