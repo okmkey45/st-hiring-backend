@@ -1,14 +1,29 @@
 import { Knex } from 'knex';
-import { Ticket } from '../entity/ticket';
+import { AvailableTicketGroup } from '../entity/ticket';
 
 export interface TicketsDAL {
-  getTicketsByEvent(eventId: number): Promise<Ticket[]>;
+  getTicketsByEvent(eventId: number): Promise<AvailableTicketGroup[]>;
 }
 
 export const createTicketDAL = (knex: Knex): TicketsDAL => {
   return {
-    async getTicketsByEvent(eventId): Promise<Ticket[]> {
-      return await knex<Ticket>('tickets').select('*').where('event_id', eventId);
+    async getTicketsByEvent(eventId): Promise<AvailableTicketGroup[]> {
+      const rows = await knex('tickets')
+        .select('type', 'status', 'price')
+        .count<{ quantity: string | number }>('* as quantity')
+        .where({
+          event_id: eventId,
+          status: 'available',
+        })
+        .groupBy('type', 'status', 'price')
+        .orderBy('type');
+
+      return rows.map((row) => ({
+        type: row.type,
+        status: row.status,
+        price: Number(row.price),
+        quantity: Number(row.quantity),
+      }));
     },
   };
-}
+};

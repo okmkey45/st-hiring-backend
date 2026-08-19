@@ -9,6 +9,8 @@ import { createSettingsDAL } from './dal/settings.dal';
 import { createGetEventsController } from './controllers/events/get-events';
 import { createGetSettingsController } from './controllers/settings/get-settings';
 import { createPostSettingsController } from './controllers/settings/post-settings';
+import { createGetTicketsController } from './controllers/tickets/get-tickets';
+import { getTicketsSchema } from './controllers/tickets/get-tickets.schema';
 
 import { connectMongo, disconnectMongo, isMongoHealthy } from './database/mongo';
 import { connectPostgres, disconnectPostgres, isPostgresHealthy } from './database/postgres';
@@ -25,8 +27,7 @@ const startServer = async () => {
   const mongoDb = await connectMongo(mongoConfig.development);
 
   const eventDAL = createEventDAL(Knex);
-  const TicketDAL = createTicketDAL(Knex);
-  console.log(TicketDAL);
+  const ticketDAL = createTicketDAL(Knex);
   const settingsDAL = createSettingsDAL(mongoDb);
 
   const app = express();
@@ -56,6 +57,12 @@ const startServer = async () => {
     '/events',
     paginationMiddleware({ allowedFields: ALLOWED_EVENT_FIELDS }),
     createGetEventsController({ eventsDAL: eventDAL }),
+  );
+
+  app.get(
+    '/events/:eventId/tickets',
+    validate(getTicketsSchema),
+    createGetTicketsController({ ticketsDAL: ticketDAL }),
   );
 
   app.get('/settings', createGetSettingsController({ settingsDAL }));

@@ -10,12 +10,19 @@ exports.seed = async function(knex) {
     }
   }
 
-  const getFakeTicket = (eventId) => {
+  const getPricesByType = () => ({
+    general: faker.number.int({ min: 1000, max: 10000 }),
+    vip: faker.number.int({ min: 1000, max: 10000 }),
+    premium: faker.number.int({ min: 1000, max: 10000 }),
+  })
+
+  const getFakeTicket = (eventId, pricesByType) => {
+    const type = faker.helpers.arrayElement(['general', 'vip', 'premium'])
     return {
       event_id: eventId,
       status: faker.helpers.arrayElement(['available', 'sold', 'reserved']),
-      type: faker.helpers.arrayElement(['general', 'vip', 'premium']),
-      price: faker.number.int({ min: 1000, max: 10000 }),
+      type,
+      price: pricesByType[type],
     }
   }
 
@@ -33,6 +40,7 @@ exports.seed = async function(knex) {
   const eventsIds = await seed('events', 100, getFakeEvent)
   // create a 500 allotment of tickets for this event
   for (const eventId of eventsIds) {
-    await seed('tickets', 500, () => getFakeTicket(eventId))
+    const pricesByType = getPricesByType()
+    await seed('tickets', 500, () => getFakeTicket(eventId, pricesByType))
   }
 }
