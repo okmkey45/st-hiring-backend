@@ -10,12 +10,12 @@ export const mockRequest = (overrides?: Partial<Request>): Request => {
   } as unknown as Request;
 };
 
-export const mockResponse = (): Response => {
-  const res: Partial<Response> = {};
+export const mockResponse = <Locals extends Record<string, any> = Record<string, any>>(): Response<any, Locals> => {
+  const res: Partial<Response<any, Locals>> = { locals: {} as Locals };
   res.status = jest.fn().mockReturnValue(res);
   res.json = jest.fn().mockReturnValue(res);
   res.send = jest.fn().mockReturnValue(res);
-  return res as Response;
+  return res as Response<any, Locals>;
 };
 
 export const mockNext = (): NextFunction => {

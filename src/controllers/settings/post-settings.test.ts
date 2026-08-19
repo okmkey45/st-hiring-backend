@@ -1,4 +1,5 @@
 import { createPostSettingsController } from './post-settings';
+import { SettingsPayload } from './post-settings.schema';
 import { SettingsDAL } from '../../dal/settings.dal';
 import { mockNext, mockRequest, mockResponse } from '../../test-utils/express.mock';
 
@@ -21,8 +22,9 @@ describe('createPostSettingsController', () => {
     mockSettingsDAL.upsertSettings.mockResolvedValue(validBody);
 
     const controller = createPostSettingsController({ settingsDAL: mockSettingsDAL });
-    const req = mockRequest({ body: validBody });
-    const res = mockResponse();
+    const req = mockRequest();
+    const res = mockResponse<{ validated: SettingsPayload }>();
+    res.locals = { validated: { body: validBody } };
     const next = mockNext();
 
     await controller(req, res, next);

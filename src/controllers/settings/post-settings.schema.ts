@@ -7,3 +7,5 @@ export const settingsSchema = yup.object({
     serviceFeePercentage: yup.number().strict().typeError('The serviceFeePercentage field must be a number.').required('The serviceFeePercentage field is required.'),
   }).nullable().required('The body payload is required.'),
 });
+
+export type SettingsPayload = yup.InferType<typeof settingsSchema>;

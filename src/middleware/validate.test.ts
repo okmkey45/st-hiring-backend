@@ -4,13 +4,13 @@ import { mockRequest, mockResponse, mockNext } from '../test-utils/express.mock'
 
 describe('validate middleware', () => {
   it('should fail and return formatted validation errors on invalid data', async () => {
-    const dummySchema = yup.object({ 
-      body: yup.object({ 
-        name: yup.string().required('name is a required field') 
-      }) 
+    const dummySchema = yup.object({
+      body: yup.object({
+        name: yup.string().required('name is a required field')
+      })
     });
     const middleware = validate(dummySchema);
-    
+
     const req = mockRequest({ body: {} });
     const res = mockResponse();
     const next = mockNext();
@@ -26,13 +26,13 @@ describe('validate middleware', () => {
   });
 
   it('should succeed and continue when validation passes', async () => {
-    const dummySchema = yup.object({ 
-      body: yup.object({ 
-        name: yup.string().required('name is a required field') 
-      }) 
+    const dummySchema = yup.object({
+      body: yup.object({
+        name: yup.string().required('name is a required field')
+      })
     });
     const middleware = validate(dummySchema);
-    
+
     const req = mockRequest({ body: { name: 'Test' } });
     const res = mockResponse();
     const next = mockNext();
@@ -50,7 +50,7 @@ describe('validate middleware', () => {
     } as unknown as yup.AnySchema;
 
     const middleware = validate(brokenSchema);
-    
+
     const req = mockRequest({ body: {} });
     const res = mockResponse();
     const next = mockNext();
@@ -59,6 +59,26 @@ describe('validate middleware', () => {
 
     expect(next).toHaveBeenCalledWith(expect.any(Error));
     expect(next).toHaveBeenCalledWith(expect.objectContaining({ message: 'Something went terribly wrong!' }));
+    expect(res.status).not.toHaveBeenCalled();
+  });
+
+  it('should set res.locals.validated with stripped data on valid request', async () => {
+    const dummySchema = yup.object({
+      body: yup.object({
+        name: yup.string().required(),
+        age: yup.number()
+      })
+    });
+    const middleware = validate(dummySchema);
+
+    const req = mockRequest({ body: { name: 'Test', unknownField: 'should be stripped' } });
+    const res = mockResponse();
+    const next = mockNext();
+
+    await middleware(req, res, next);
+
+    expect(res.locals.validated).toEqual({ body: { name: 'Test' } });
+    expect(next).toHaveBeenCalled();
     expect(res.status).not.toHaveBeenCalled();
   });
 });

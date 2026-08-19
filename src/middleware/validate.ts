@@ -4,12 +4,14 @@ import { AnySchema, ValidationError } from 'yup';
 export const validate = (schema: AnySchema) => 
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await schema.validate({
+      const validated = await schema.validate({
         body: req.body,
         query: req.query,
         params: req.params,
-      }, { abortEarly: false });
+      }, { abortEarly: false, stripUnknown: true });
       
+      res.locals.validated = validated;
+
       return next();
     } catch (error) {
       if (error instanceof ValidationError) {
