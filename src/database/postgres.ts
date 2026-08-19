@@ -27,3 +27,14 @@ export const disconnectPostgres = async (): Promise<void> => {
     console.log('Postgres disconnected.');
   }
 };
+
+export const isPostgresHealthy = async (): Promise<boolean> => {
+  if (!knexInstance) return false;
+
+  try {
+    await knexInstance.raw('SELECT 1');
+    return true;
+  } catch {
+    return false;
+  }
+};

@@ -10,8 +10,8 @@ import { createGetEventsController } from './controllers/events/get-events';
 import { createGetSettingsController } from './controllers/settings/get-settings';
 import { createPostSettingsController } from './controllers/settings/post-settings';
 
-import { connectMongo, disconnectMongo } from './database/mongo';
-import { connectPostgres, disconnectPostgres } from './database/postgres';
+import { connectMongo, disconnectMongo, isMongoHealthy } from './database/mongo';
+import { connectPostgres, disconnectPostgres, isPostgresHealthy } from './database/postgres';
 import postgresConfig from './knexfile';
 import mongoConfig from './mongoConfig';
 
@@ -34,8 +34,22 @@ const startServer = async () => {
   app.use(cors());
   app.use(express.json());
 
-  app.use('/health', (_req, res) => {
-    res.json({ status: 'ok' });
+  app.use('/health', async (_req, res, next) => {
+    try {
+      const [isPgHealthy, isMoHealthy] = await Promise.all([
+        isPostgresHealthy(),
+        isMongoHealthy(),
+      ]);
+
+      if (!isPgHealthy || !isMoHealthy) {
+        res.status(503).json({ status: 'unhealthy' });
+        return;
+      }
+
+      res.status(200).json({ status: 'ok' });
+    } catch (err) {
+      next(err);
+    }
   });
 
   app.get(
@@ -50,10 +64,6 @@ const startServer = async () => {
     validate(settingsSchema),
     createPostSettingsController({ settingsDAL })
   );
-
-  app.use('/', (_req, res) => {
-    res.json({ message: 'Hello API' });
-  });
 
   app.use(globalErrorHandler);
 

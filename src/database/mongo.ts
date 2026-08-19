@@ -29,3 +29,14 @@ export const disconnectMongo = async (): Promise<void> => {
     db = null;
   }
 };
+
+export const isMongoHealthy = async (): Promise<boolean> => {
+  if (!client) return false;
+
+  try {
+    await client.db('admin').command({ ping: 1 });
+    return true;
+  } catch {
+    return false;
+  }
+};
