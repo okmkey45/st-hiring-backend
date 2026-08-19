@@ -18,6 +18,7 @@ import mongoConfig from './mongoConfig';
 import { validate } from './middleware/validate';
 import { paginationMiddleware } from './middleware/pagination';
 import { settingsSchema } from './controllers/settings/post-settings.schema';
+import { globalErrorHandler } from './middleware/global-error-handler';
 
 const startServer = async () => {
   const Knex = await connectPostgres(postgresConfig.development);
@@ -53,6 +54,8 @@ const startServer = async () => {
   app.use('/', (_req, res) => {
     res.json({ message: 'Hello API' });
   });
+
+  app.use(globalErrorHandler);
 
   const server = app.listen(3000, () => {
     console.log('Server Started on port 3000');

@@ -1,6 +1,6 @@
 import { createGetSettingsController } from './get-settings';
 import { SettingsDAL } from '../../dal/settings.dal';
-import { mockRequest, mockResponse } from '../../test-utils/express.mock';
+import { mockNext, mockRequest, mockResponse } from '../../test-utils/express.mock';
 
 describe('createGetSettingsController', () => {
   let mockSettingsDAL: jest.Mocked<SettingsDAL>;
@@ -23,10 +23,11 @@ describe('createGetSettingsController', () => {
     const controller = createGetSettingsController({ settingsDAL: mockSettingsDAL });
     const req = mockRequest();
     const res = mockResponse();
-
-    await controller(req, res);
+    const next = mockNext();
+    await controller(req, res, next);
 
     expect(mockSettingsDAL.getSettings).toHaveBeenCalledTimes(1);
+    expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(mockSettings);
     expect(res.json).toHaveBeenCalledTimes(1);
   });

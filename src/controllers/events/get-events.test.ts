@@ -1,6 +1,6 @@
 import { createGetEventsController } from './get-events';
 import { EventDAL } from '../../dal/events.dal';
-import { mockRequest, mockResponse } from '../../test-utils/express.mock';
+import { mockRequest, mockResponse, mockNext } from '../../test-utils/express.mock';
 
 describe('createGetEventsController', () => {
   let mockEventsDAL: jest.Mocked<EventDAL>;
@@ -16,6 +16,7 @@ describe('createGetEventsController', () => {
     const controller = createGetEventsController({ eventsDAL: mockEventsDAL });
     const req = mockRequest();
     const res = mockResponse();
+    const next = mockNext();
     res.locals = {
       pagination: {
         limit: 10,
@@ -24,13 +25,14 @@ describe('createGetEventsController', () => {
       },
     };
 
-    await controller(req, res);
+    await controller(req, res, next);
 
     expect(mockEventsDAL.getEvents).toHaveBeenCalledWith({
       limit: 10,
       skip: 20,
       fields: ['id', 'name'],
     });
+    expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
       data: [{ id: 1, name: 'Event 1' }],
       meta: {
